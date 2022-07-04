@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>📕技术 on Shaoyi&#39;s Blog</title>
+    <link>http://shaoyi.cc/posts/blog/</link>
+    <description>Recent content in 📕技术 on Shaoyi&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Mon, 04 Jul 2022 19:18:23 +0800</lastBuildDate><atom:link href="http://shaoyi.cc/posts/blog/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Maven 私服</title>
+      <link>http://shaoyi.cc/posts/blog/maven%E7%A7%81%E6%9C%8D/maven-%E7%A7%81%E6%9C%8D/</link>
+      <pubDate>Mon, 04 Jul 2022 19:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/posts/blog/maven%E7%A7%81%E6%9C%8D/maven-%E7%A7%81%E6%9C%8D/</guid>
+      <description>项目打包到Maven 私服 配置Maven 配置私服仓库的用户和密码 在maven安装目录 /conf/setting.xml 中的servers下添加 1 2 3 4 5 6 7 8 9 10 11 12 &amp;lt;servers&amp;gt; &amp;lt;server&amp;gt; &amp;lt;id&amp;gt;nexus-snapshots&amp;lt;/id&amp;gt; &amp;lt;username&amp;gt;admin&amp;lt;/username&amp;gt;</description>
+    </item>
+    
+    <item>
+      <title>Jenkins部署</title>
+      <link>http://shaoyi.cc/posts/blog/jenkins%E6%9E%84%E5%BB%BA/jenkins-%E6%9E%84%E5%BB%BA/</link>
+      <pubDate>Mon, 04 Jul 2022 00:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/posts/blog/jenkins%E6%9E%84%E5%BB%BA/jenkins-%E6%9E%84%E5%BB%BA/</guid>
+      <description>Jenkins构建 前端构建 创建一个【自由风格】的任务 点击【源码管理】 填写（选择）项目仓库的地址和用户 指定要构建的版本，即项目仓库的远程版本号</description>
+    </item>
+    
+  </channel>
+</rss>
