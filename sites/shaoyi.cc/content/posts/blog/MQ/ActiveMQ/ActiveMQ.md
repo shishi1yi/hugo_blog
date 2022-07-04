@@ -9,7 +9,7 @@ categories:
 - ActiveMQ
 tags: 
 - ActiveMQ
-description: ""
+description: "ActiveMQ的应用"
 weight:
 slug: ""
 draft: false # 是否为草稿

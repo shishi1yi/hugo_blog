@@ -94,7 +94,7 @@ params:
     # author: ["Me", "You"] # multiple authors
     defaultTheme: auto  # defaultTheme: light or  dark 
     disableThemeToggle: false
-    DateFormat: "2022-07-04"
+    DateFormat: "2006-01-02"
     ShowWordCounts: true
     ShowReadingTime: true
     ShowLastMod: true

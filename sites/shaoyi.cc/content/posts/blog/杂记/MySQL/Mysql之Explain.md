@@ -9,7 +9,7 @@ categories:
 - Mysql
 tags: 
 - Mysql
-description: ""
+description: "杂记"
 weight:
 slug: ""
 draft: false # 是否为草稿

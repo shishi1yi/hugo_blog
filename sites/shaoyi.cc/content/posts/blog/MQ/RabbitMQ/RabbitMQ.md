@@ -9,7 +9,7 @@ categories:
 - RabbitMQ
 tags: 
 - RabbitMQ
-description: ""
+description: "RabbitMQ使用方式"
 weight:
 slug: ""
 draft: false # 是否为草稿

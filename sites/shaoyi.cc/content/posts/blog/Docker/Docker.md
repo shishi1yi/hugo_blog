@@ -9,7 +9,7 @@ categories:
 - Docker
 tags: 
 - Docker
-description: ""
+description: "Docker的基本使用方式"
 weight:
 slug: ""
 draft: false # 是否为草稿
@@ -22,7 +22,7 @@ hidemeta: false # 是否隐藏文章的元信息，如发布日期、作者等
 disableShare: true # 底部不显示分享栏
 showbreadcrumbs: true #顶部显示路径
 cover:
-    image: "" #图片路径例如：posts/tech/123/123.png
+    image: "/img/docker.png" #图片路径例如：posts/tech/123/123.png
     caption: "" #图片底部描述
     alt: ""
     relative: false
@@ -1171,7 +1171,6 @@ PING tomcat-net-02 (192.168.0.3) 56(84) bytes of data.
 ```
 
 <img src="https://s1.ax1x.com/2020/09/08/wQfVb9.png" alt="wQfVb9.png" style="zoom:150%;" />
-
 
 
 
