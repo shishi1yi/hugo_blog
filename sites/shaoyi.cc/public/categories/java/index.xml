@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Java on Shaoyi&#39;s Blog</title>
+    <link>http://shaoyi.cc/categories/java/</link>
+    <description>Recent content in Java on Shaoyi&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 02 Jul 2020 19:18:23 +0800</lastBuildDate><atom:link href="http://shaoyi.cc/categories/java/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Java多线程笔记</title>
+      <link>http://shaoyi.cc/posts/blog/%E6%9D%82%E8%AE%B0/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AC%94%E8%AE%B0/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Thu, 02 Jul 2020 19:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/posts/blog/%E6%9D%82%E8%AE%B0/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AC%94%E8%AE%B0/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AC%94%E8%AE%B0/</guid>
+      <description>Java锁 独占锁（写锁）： 指该锁一次只能被一个线程锁持有。对于ReentranrLock和 Synchronized 而言都是独 占锁。 共享锁（读锁）： 该锁可被多个线程</description>
+    </item>
+    
+  </channel>
+</rss>

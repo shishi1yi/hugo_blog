@@ -38,7 +38,7 @@ languages:
         enabled: true
         title: 我的博客
         subtitle: "生有时，死有时； 栽种有时，拔出所栽种的也有时<br/>"
-        imageUrl: "" #图片放在static/img/Q.gif
+        imageUrl: "img/cover.jpg" #图片放在static/img/Q.gif
         imageTitle: 
         imageWidth: 150
         imageHeight: 150
@@ -47,6 +47,8 @@ languages:
             url: posts/blog
           - name: 🏖 生活
             url: posts/life
+          - name: 📽️ 观影
+            url: posts/watch_video
       menu:
         main:
           - identifier: home
@@ -87,12 +89,12 @@ outputs:
 
 params:
     env: production # to enable google analytics, opengraph, twitter-cards and schema.
-    description: "邵艺的个人网站"
+    description: ""
     author: shaoyi
     # author: ["Me", "You"] # multiple authors
     defaultTheme: auto  # defaultTheme: light or  dark 
     disableThemeToggle: false
-    DateFormat: "2006-01-02"
+    DateFormat: "2022-07-04"
     ShowWordCounts: true
     ShowReadingTime: true
     ShowLastMod: true

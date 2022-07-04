@@ -3,7 +3,7 @@ title: "📽️ 观影记录"
 hidemeta: true #是否隐藏文章的元信息，如发布信息、作者等
 ---
 
-
+{{< douban src="https://book.douban.com/subject/20394150/" >}}
 
 ![](https://img2.doubanio.com/view/photo/l/public/p2867528911.webp)
 
