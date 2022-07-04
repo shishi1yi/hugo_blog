@@ -25,5 +25,50 @@
       <description></description>
     </item>
     
+    <item>
+      <title>Docker</title>
+      <link>http://shaoyi.cc/tags/docker/</link>
+      <pubDate>Sat, 04 Jul 2020 19:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/tags/docker/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>RabbitMQ</title>
+      <link>http://shaoyi.cc/tags/rabbitmq/</link>
+      <pubDate>Sat, 04 Jul 2020 19:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/tags/rabbitmq/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>ActiveMQ</title>
+      <link>http://shaoyi.cc/tags/activemq/</link>
+      <pubDate>Fri, 03 Jul 2020 19:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/tags/activemq/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Java</title>
+      <link>http://shaoyi.cc/tags/java/</link>
+      <pubDate>Thu, 02 Jul 2020 19:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/tags/java/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Mysql</title>
+      <link>http://shaoyi.cc/tags/mysql/</link>
+      <pubDate>Thu, 02 Jul 2020 19:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/tags/mysql/</guid>
+      <description></description>
+    </item>
+    
   </channel>
 </rss>

@@ -25,5 +25,50 @@
       <description>Jenkins构建 前端构建 创建一个【自由风格】的任务 点击【源码管理】 填写（选择）项目仓库的地址和用户 指定要构建的版本，即项目仓库的远程版本号</description>
     </item>
     
+    <item>
+      <title>Docker 容器</title>
+      <link>http://shaoyi.cc/posts/blog/docker/docker/</link>
+      <pubDate>Sat, 04 Jul 2020 19:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/posts/blog/docker/docker/</guid>
+      <description>Docker安装步骤 安装Docker 安装 帮助文档： 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 # yum安装g</description>
+    </item>
+    
+    <item>
+      <title>消息中间件之RabbitMQ</title>
+      <link>http://shaoyi.cc/posts/blog/mq/rabbitmq/rabbitmq/</link>
+      <pubDate>Sat, 04 Jul 2020 19:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/posts/blog/mq/rabbitmq/rabbitmq/</guid>
+      <description>Docker 安装RabbitMQ 这里注意获取镜像的时候要获取management版本的，不要获取last版本的，management版本的才带有管理界</description>
+    </item>
+    
+    <item>
+      <title>消息中间件之ActiveMQ</title>
+      <link>http://shaoyi.cc/posts/blog/mq/activemq/activemq/</link>
+      <pubDate>Fri, 03 Jul 2020 19:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/posts/blog/mq/activemq/activemq/</guid>
+      <description>ActiveMQ安装（Docker环境下） 首先在docker搜索ActiveMQ，发现webcenter/activemq 这个版本使用是最多</description>
+    </item>
+    
+    <item>
+      <title>Java多线程笔记</title>
+      <link>http://shaoyi.cc/posts/blog/%E6%9D%82%E8%AE%B0/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AC%94%E8%AE%B0/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Thu, 02 Jul 2020 19:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/posts/blog/%E6%9D%82%E8%AE%B0/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AC%94%E8%AE%B0/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AC%94%E8%AE%B0/</guid>
+      <description>Java锁 独占锁（写锁）： 指该锁一次只能被一个线程锁持有。对于ReentranrLock和 Synchronized 而言都是独 占锁。 共享锁（读锁）： 该锁可被多个线程</description>
+    </item>
+    
+    <item>
+      <title>Mysql之Explain详解</title>
+      <link>http://shaoyi.cc/posts/blog/%E6%9D%82%E8%AE%B0/mysql/mysql%E4%B9%8Bexplain/</link>
+      <pubDate>Thu, 02 Jul 2020 19:18:23 +0800</pubDate>
+      
+      <guid>http://shaoyi.cc/posts/blog/%E6%9D%82%E8%AE%B0/mysql/mysql%E4%B9%8Bexplain/</guid>
+      <description>Explain详解 explain出来的信息有10列，分别是id、select_type、table、type、possible_keys、k</description>
+    </item>
+    
   </channel>
 </rss>
