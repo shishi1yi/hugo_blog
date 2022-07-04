@@ -13,7 +13,7 @@
       <pubDate>Thu, 02 Jul 2020 19:18:23 +0800</pubDate>
       
       <guid>http://shaoyi.cc/posts/blog/%E6%9D%82%E8%AE%B0/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AC%94%E8%AE%B0/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AC%94%E8%AE%B0/</guid>
-      <description>Java锁 独占锁（写锁）： 指该锁一次只能被一个线程锁持有。对于ReentranrLock和 Synchronized 而言都是独 占锁。 共享锁（读锁）： 该锁可被多个线程</description>
+      <description>杂记</description>
     </item>
     
   </channel>

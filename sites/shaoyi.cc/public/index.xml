@@ -13,7 +13,7 @@
       <pubDate>Mon, 04 Jul 2022 19:18:23 +0800</pubDate>
       
       <guid>http://shaoyi.cc/posts/blog/maven%E7%A7%81%E6%9C%8D/maven-%E7%A7%81%E6%9C%8D/</guid>
-      <description>项目打包到Maven 私服 配置Maven 配置私服仓库的用户和密码 在maven安装目录 /conf/setting.xml 中的servers下添加 1 2 3 4 5 6 7 8 9 10 11 12 &amp;lt;servers&amp;gt; &amp;lt;server&amp;gt; &amp;lt;id&amp;gt;nexus-snapshots&amp;lt;/id&amp;gt; &amp;lt;username&amp;gt;admin&amp;lt;/username&amp;gt;</description>
+      <description>项目中关于Maven 私服配置</description>
     </item>
     
     <item>
@@ -22,7 +22,7 @@
       <pubDate>Mon, 04 Jul 2022 00:18:23 +0800</pubDate>
       
       <guid>http://shaoyi.cc/posts/blog/jenkins%E6%9E%84%E5%BB%BA/jenkins-%E6%9E%84%E5%BB%BA/</guid>
-      <description>Jenkins构建 前端构建 创建一个【自由风格】的任务 点击【源码管理】 填写（选择）项目仓库的地址和用户 指定要构建的版本，即项目仓库的远程版本号</description>
+      <description>Jenkins部署前后端</description>
     </item>
     
     <item>
@@ -40,7 +40,7 @@
       <pubDate>Sat, 04 Jul 2020 19:18:23 +0800</pubDate>
       
       <guid>http://shaoyi.cc/posts/blog/docker/docker/</guid>
-      <description>Docker安装步骤 安装Docker 安装 帮助文档： 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 # yum安装g</description>
+      <description>Docker的基本使用方式</description>
     </item>
     
     <item>
@@ -49,7 +49,7 @@
       <pubDate>Sat, 04 Jul 2020 19:18:23 +0800</pubDate>
       
       <guid>http://shaoyi.cc/posts/blog/mq/rabbitmq/rabbitmq/</guid>
-      <description>Docker 安装RabbitMQ 这里注意获取镜像的时候要获取management版本的，不要获取last版本的，management版本的才带有管理界</description>
+      <description>RabbitMQ使用方式</description>
     </item>
     
     <item>
@@ -58,7 +58,7 @@
       <pubDate>Fri, 03 Jul 2020 19:18:23 +0800</pubDate>
       
       <guid>http://shaoyi.cc/posts/blog/mq/activemq/activemq/</guid>
-      <description>ActiveMQ安装（Docker环境下） 首先在docker搜索ActiveMQ，发现webcenter/activemq 这个版本使用是最多</description>
+      <description>ActiveMQ的应用</description>
     </item>
     
     <item>
@@ -67,7 +67,7 @@
       <pubDate>Thu, 02 Jul 2020 19:18:23 +0800</pubDate>
       
       <guid>http://shaoyi.cc/posts/blog/%E6%9D%82%E8%AE%B0/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AC%94%E8%AE%B0/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%AC%94%E8%AE%B0/</guid>
-      <description>Java锁 独占锁（写锁）： 指该锁一次只能被一个线程锁持有。对于ReentranrLock和 Synchronized 而言都是独 占锁。 共享锁（读锁）： 该锁可被多个线程</description>
+      <description>杂记</description>
     </item>
     
     <item>
@@ -76,7 +76,7 @@
       <pubDate>Thu, 02 Jul 2020 19:18:23 +0800</pubDate>
       
       <guid>http://shaoyi.cc/posts/blog/%E6%9D%82%E8%AE%B0/mysql/mysql%E4%B9%8Bexplain/</guid>
-      <description>Explain详解 explain出来的信息有10列，分别是id、select_type、table、type、possible_keys、k</description>
+      <description>杂记</description>
     </item>
     
     

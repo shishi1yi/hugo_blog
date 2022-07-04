@@ -7,11 +7,11 @@
 <meta name="robots" content="index, follow">
 <title>Jenkins部署 | Shaoyi&#39;s Blog</title>
 <meta name="keywords" content="Jenkins">
-<meta name="description" content="Jenkins构建 前端构建 创建一个【自由风格】的任务 点击【源码管理】 填写（选择）项目仓库的地址和用户 指定要构建的版本，即项目仓库的远程版本号">
+<meta name="description" content="Jenkins部署前后端">
 <meta name="author" content="
 作者:&nbsp;shaoyi">
 <link rel="canonical" href="http://shaoyi.cc/posts/blog/jenkins%E6%9E%84%E5%BB%BA/jenkins-%E6%9E%84%E5%BB%BA/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.37d24beae69e19eaefae17128331e0c742dc95d41a9d6e00dc3901824ec08b75.css" integrity="sha256-N9JL6uaeGervrhcSgzHgx0LcldQanW4A3DkBgk7Ai3U=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.bb3fd15879e1b070bc3f661ad98fef35fef1f31a23b6bec0b04e5cb164937952.css" integrity="sha256-uz/RWHnhsHC8P2Ya2Y/vNf7x8xojtr7AsE5csWSTeVI=" rel="preload stylesheet" as="style">
 <script defer crossorigin="anonymous" src="/assets/js/highlight.acb54fd32bbc1982428b8850317e45d076b95012730a5936667e6bc21777692a.js" integrity="sha256-rLVP0yu8GYJCi4hQMX5F0Ha5UBJzClk2Zn5rwhd3aSo="
     onload="hljs.initHighlightingOnLoad();"></script>
 <link rel="icon" href="http://shaoyi.cc/favicon.ico">
@@ -58,15 +58,17 @@
 
     </style>
 </noscript><meta property="og:title" content="Jenkins部署" />
-<meta property="og:description" content="Jenkins构建 前端构建 创建一个【自由风格】的任务 点击【源码管理】 填写（选择）项目仓库的地址和用户 指定要构建的版本，即项目仓库的远程版本号" />
+<meta property="og:description" content="Jenkins部署前后端" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://shaoyi.cc/posts/blog/jenkins%E6%9E%84%E5%BB%BA/jenkins-%E6%9E%84%E5%BB%BA/" /><meta property="article:section" content="posts" />
+<meta property="og:url" content="http://shaoyi.cc/posts/blog/jenkins%E6%9E%84%E5%BB%BA/jenkins-%E6%9E%84%E5%BB%BA/" />
+<meta property="og:image" content="http://shaoyi.cc/img/jenkins.jpg" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2022-07-04T00:18:23&#43;08:00" />
 <meta property="article:modified_time" content="2022-07-04T00:18:23&#43;08:00" />
 
-<meta name="twitter:card" content="summary"/>
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="http://shaoyi.cc/img/jenkins.jpg" />
 <meta name="twitter:title" content="Jenkins部署"/>
-<meta name="twitter:description" content="Jenkins构建 前端构建 创建一个【自由风格】的任务 点击【源码管理】 填写（选择）项目仓库的地址和用户 指定要构建的版本，即项目仓库的远程版本号"/>
+<meta name="twitter:description" content="Jenkins部署前后端"/>
 
 
 <script type="application/ld+json">
@@ -101,14 +103,14 @@
   "@type": "BlogPosting",
   "headline": "Jenkins部署",
   "name": "Jenkins部署",
-  "description": "Jenkins构建 前端构建 创建一个【自由风格】的任务 点击【源码管理】 填写（选择）项目仓库的地址和用户 指定要构建的版本，即项目仓库的远程版本号",
+  "description": "Jenkins部署前后端",
   "keywords": [
     "Jenkins"
   ],
   "articleBody": "Jenkins构建 前端构建 创建一个【自由风格】的任务 点击【源码管理】 填写（选择）项目仓库的地址和用户\n指定要构建的版本，即项目仓库的远程版本号\n选择nodejs版本 如果没有选项，说明当前jenkins 没有安装\n填写构建的命令 这个命令取决于具体工程，和本地第一次执行命令基本一致\n例如：node -v \u0026\u0026 npm install -g yarn@1.22.19 \u0026\u0026 yarn -v \u0026\u0026 yarn install –pure-lockfile \u0026\u0026 yarn run build \u0026\u0026 cd dist \u0026\u0026 tar -zcvf dist.tar.gz *\n上述例子意思大致为，获取项目依赖，并打包构建，然后把打好的包压缩\n传输打包的文件到指定服务器 【SSH Server】：选择要传输文件的服务器\nTransfers\n【Source files】：写你要传输的文件路径 【Remove prefix】：要去掉的前缀，不写远程服务器的目录结构将和Source files写的一致 【Remote directory】：写你要部署在远程服务器的那个目录地址下，不写就是SSH Servers配置里默认远程目录 【Exec command】：传输完了要执行的命令，图中例子是 进入目录,解压缩,解压缩完成后删除压缩包三个命令 后端构建 创建maven任务 任务的全局设置 指定jdk版本 点击【源码管理】 填写（选择）项目仓库的地址和用户\n指定要构建的版本，即项目仓库的远程版本号\n构建时，指定pom文件 跳过测试构建（非必须） 设置只用构建成功的包 传输打包的文件到指定服务器 【SSH Server】：选择要传输文件的服务器\nTransfers\n【Source files】：写你要传输的文件路径 【Remove prefix】：要去掉的前缀，不写远程服务器的目录结构将和Source files写的一致 【Remote directory】：写你要部署在远程服务器的那个目录地址下，不写就是SSH Servers配置里默认远程目录 【Exec command】：传输完了要执行的命令 Jenkins自动化构建（钩子） 设置触发自动化构建的条件 下图框中部分为触发自动构建的条件，本例子触发条件的为【提交事件】\n设置分支过滤 本例没有做限制\nGitLab设置 复制URL\n点击Generate按钮，token就会自动生成Secret token\nURL和Secret token，设置在对应的仓库中 测试 GitLab页面提示下图内容，则成功触发Jenkins构建任务 Jenkins构建历史已有记录 项目配置私服 仓库setting.xml文件配置私服用户密码 由于jenkins是docker部署的，会牵扯到一个访问地址\n如果是本地获取私服包，则需要在项目的根部pom.xml 配置私服地址 注：id要和setting.xml文件中一致\n如果是Jenkins构建，则需要把项目的根部pom.xml 改成下图中的ip\n",
   "wordCount" : "1067",
   "inLanguage": "zh",
-  "datePublished": "2022-07-04T00:18:23+08:00",
+  "image":"http://shaoyi.cc/img/jenkins.jpg","datePublished": "2022-07-04T00:18:23+08:00",
   "dateModified": "2022-07-04T00:18:23+08:00",
   "author":[{
     "@type": "Person",
@@ -211,6 +213,9 @@
     <h1 class="post-title">
       Jenkins部署
     </h1>
+    <div class="post-description">
+      Jenkins部署前后端
+    </div>
     <div class="post-meta">
 
 
@@ -221,11 +226,14 @@
 
 
 
-创建:&nbsp;<span title='2022-07-04 00:18:23 +0800 CST'>4044+08-18</span>&nbsp;·&nbsp;更新:&nbsp;4044+08-18&nbsp;·&nbsp;字数:&nbsp;1067字&nbsp;·&nbsp;
+创建:&nbsp;<span title='2022-07-04 00:18:23 +0800 CST'>2022-07-04</span>&nbsp;·&nbsp;更新:&nbsp;2022-07-04&nbsp;·&nbsp;字数:&nbsp;1067字&nbsp;·&nbsp;
 作者:&nbsp;shaoyi
 
 </div>
-  </header> <aside id="toc-container" class="toc-container wide">
+  </header> 
+<figure class="entry-cover1"><img loading="lazy" src="http://shaoyi.cc/img/jenkins.jpg" alt="">
+        
+</figure><aside id="toc-container" class="toc-container wide">
         <div class="toc">
             <details  open>
                 <summary accesskey="c" title="(Alt + C)">
@@ -534,10 +542,11 @@
     
 <footer class="footer">
     <span>&copy; 2022 <a href="http://shaoyi.cc/">Shaoyi&#39;s Blog</a></span>
+    <span>All Rights Reserved</span>
     <span>
-        Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+        
+        
+        <a href="https://beian.miit.gov.cn/" rel="noopener noreferrer" target="_blank">鄂ICP备2022008682号-1</a>
     </span>
 </footer>
 <a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
@@ -646,7 +655,6 @@
             codeblock.parentNode.appendChild(copybutton);
         }
     });
-</script>
-</body>
+</script></body>
 
 </html>

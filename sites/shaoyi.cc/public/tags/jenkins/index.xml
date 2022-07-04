@@ -13,7 +13,7 @@
       <pubDate>Mon, 04 Jul 2022 00:18:23 +0800</pubDate>
       
       <guid>http://shaoyi.cc/posts/blog/jenkins%E6%9E%84%E5%BB%BA/jenkins-%E6%9E%84%E5%BB%BA/</guid>
-      <description>Jenkins构建 前端构建 创建一个【自由风格】的任务 点击【源码管理】 填写（选择）项目仓库的地址和用户 指定要构建的版本，即项目仓库的远程版本号</description>
+      <description>Jenkins部署前后端</description>
     </item>
     
   </channel>
