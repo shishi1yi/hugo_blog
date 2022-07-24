@@ -2,7 +2,7 @@
 title: "Jenkins部署"
 date: 2022-07-04T00:18:23+08:00
 lastmod: 2022-07-04T00:18:23+08:00
-author: ["shaoyi"]
+author: ["十十乙"]
 keywords: 
 - Jenkins
 categories: 

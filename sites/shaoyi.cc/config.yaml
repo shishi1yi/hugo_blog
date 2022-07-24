@@ -1,6 +1,6 @@
 baseURL: http://shaoyi.cc/
 languageCode: zh-cn
-title: Shaoyi's Blog
+title: 十十乙的博客
 theme: hugo-PaperMod # 主题名字，和themes文件夹下的一致
 
 enableInlineShortcodes: true #允许内联短码
@@ -13,7 +13,7 @@ buildDrafts: false
 buildFuture: false
 buildExpired: false
 
-googleAnalytics:  # 谷歌统计
+# googleAnalytics:  # 谷歌统计
 
 paginate: 15    # 每页显示的文章数
 
@@ -36,7 +36,7 @@ languages:
       weight: 1
       profileMode:
         enabled: true
-        title: 我的博客
+        title: 十十乙的博客
         subtitle: "生有时，死有时； 栽种有时，拔出所栽种的也有时<br/>"
         imageUrl: "img/cover.jpg" #图片放在static/img/Q.gif
         imageTitle: 
@@ -45,8 +45,8 @@ languages:
         buttons:
           - name: 📕技术
             url: posts/blog
-          - name: 🏖 生活
-            url: posts/life
+          # - name: 🏖 生活
+          #   url: posts/life
           - name: 📽️ 观影
             url: posts/watch_video
       menu:
@@ -90,7 +90,7 @@ outputs:
 params:
     env: production # to enable google analytics, opengraph, twitter-cards and schema.
     description: ""
-    author: shaoyi
+    author: 十十乙
     # author: ["Me", "You"] # multiple authors
     defaultTheme: auto  # defaultTheme: light or  dark 
     disableThemeToggle: false
@@ -161,7 +161,7 @@ markup:
         # anchorLineNos: true
         codeFences: true  
         guessSyntax: true
-        lineNos: true
+        lineNos: false
         noClasses: true
         # style: monokai
         style: darcula

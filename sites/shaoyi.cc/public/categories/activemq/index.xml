@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>ActiveMQ on Shaoyi&#39;s Blog</title>
+    <title>ActiveMQ on 十十乙的博客</title>
     <link>http://shaoyi.cc/categories/activemq/</link>
-    <description>Recent content in ActiveMQ on Shaoyi&#39;s Blog</description>
+    <description>Recent content in ActiveMQ on 十十乙的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <lastBuildDate>Fri, 03 Jul 2020 19:18:23 +0800</lastBuildDate><atom:link href="http://shaoyi.cc/categories/activemq/index.xml" rel="self" type="application/rss+xml" />

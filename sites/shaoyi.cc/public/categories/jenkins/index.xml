@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Jenkins on Shaoyi&#39;s Blog</title>
+    <title>Jenkins on 十十乙的博客</title>
     <link>http://shaoyi.cc/categories/jenkins/</link>
-    <description>Recent content in Jenkins on Shaoyi&#39;s Blog</description>
+    <description>Recent content in Jenkins on 十十乙的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <lastBuildDate>Mon, 04 Jul 2022 00:18:23 +0800</lastBuildDate><atom:link href="http://shaoyi.cc/categories/jenkins/index.xml" rel="self" type="application/rss+xml" />
