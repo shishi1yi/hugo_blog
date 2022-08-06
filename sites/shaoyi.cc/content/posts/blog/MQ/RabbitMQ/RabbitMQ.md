@@ -1,7 +1,7 @@
 ---
 title: "消息中间件之RabbitMQ"
 date: 2020-07-04T19:18:23+08:00
-lastmod: 2022-07-04T19:18:23+08:00
+lastmod: 2022-08-06T16:24:23+08:00
 author: ["十十乙"]
 keywords: 
 - RabbitMQ
@@ -2099,3 +2099,280 @@ public class TestContoller {
 调用接口，定义10秒的延迟
 
 ![](https://z3.ax1x.com/2021/11/21/IXzEPx.png)
+
+
+
+
+
+# 连接多个RabbitMq的服务或Virtual-Host
+
+`注：以下为springboot方式`
+
+## 自定义配置文件内容
+
+```yml
+custom:
+  rabbitmq:
+    primary:
+      host: 192.168.1.101
+      port: 3381
+      username: admin #用户名
+      password: rabbit_3381 #密码
+      virtual-host: rabbitMq_1    #虚拟机名称
+      #消息确认配置项
+      #确认消息已发送到交换机(Exchange)
+      publisher-confirm-type: correlated
+      #确认消息已发送到队列(Queue)
+      publisher-returns: true
+    secondary:
+      host: 192.168.1.102
+      port: 3381
+      username: admin #用户名
+      password: rabbit_3381 #密码
+      virtual-host: rabbitMq_2    #虚拟机名称
+      #消息确认配置项
+      #确认消息已发送到交换机(Exchange)
+      publisher-confirm-type: correlated
+      #确认消息已发送到队列(Queue)
+      publisher-returns: true
+```
+
+
+
+## 创建对应的Properties属性类
+
+> 记得加上@EnableConfigurationProperties({CustomRabbitProperties.class})
+
+**主要内容如下：**
+
+```java
+import lombok.Data;
+import lombok.ToString;
+import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+
+/**
+ * @Author ShaoYi
+ * @Description 自定义Rabbitmq属性
+ * @createDate 2022年08月05日 16:35
+ **/
+@Data
+@ToString
+@Component
+@ConfigurationProperties(prefix = "custom.rabbitmq")
+public class CustomRabbitProperties {
+
+	private RabbitProperties primary;
+
+	private RabbitProperties secondary;
+
+
+}
+```
+
+
+
+## Rabbitmq配置类
+
+**主要内容如下：**
+
+```java
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+
+/**
+ * @Author ShaoYi
+ * @Description rabbitmq配置
+ * @createDate 2022年08月05日 17:48
+ **/
+@Slf4j
+@EnableRabbit
+@Configuration
+public class RabbitmqConfiguration {
+
+
+    /**
+	 * rabbitmq连接工厂
+	 * @param customRabbitProperties
+	 * @return
+	 */
+	@Bean(name = "primaryConnectionFactory")
+	@Primary
+	public ConnectionFactory createPrimaryConnectionFactory(CustomRabbitProperties customRabbitProperties) {
+		CachingConnectionFactory primaryConnectionFactory = new CachingConnectionFactory();
+		primaryConnectionFactory.setHost(customRabbitProperties.getPrimary().getHost());
+		primaryConnectionFactory.setPort(customRabbitProperties.getPrimary().getPort());
+		primaryConnectionFactory.setUsername(customRabbitProperties.getPrimary().getUsername());
+		primaryConnectionFactory.setPassword(customRabbitProperties.getPrimary().getPassword());
+		primaryConnectionFactory.setVirtualHost(customRabbitProperties.getPrimary().getVirtualHost());
+		primaryConnectionFactory.setPublisherConfirmType(customRabbitProperties.getPrimary().getPublisherConfirmType());
+		primaryConnectionFactory.setPublisherReturns(customRabbitProperties.getPrimary().isPublisherReturns());
+		return primaryConnectionFactory;
+	}
+
+    /**
+	 * rabbitmq连接工厂
+	 * @param customRabbitProperties
+	 * @return
+	 */
+	@Bean(name = "secondaryConnectionFactory")
+	public ConnectionFactory createSecondaryConnectionFactory(CustomRabbitProperties customRabbitProperties) {
+		CachingConnectionFactory secondaryConnectionFactory = new CachingConnectionFactory();
+		secondaryConnectionFactory.setHost(customRabbitProperties.getSecondary().getHost());
+		secondaryConnectionFactory.setPort(customRabbitProperties.getSecondary().getPort());
+		secondaryConnectionFactory.setUsername(customRabbitProperties.getSecondary().getUsername());
+		secondaryConnectionFactory.setPassword(customRabbitProperties.getSecondary().getPassword());
+		secondaryConnectionFactory.setVirtualHost(customRabbitProperties.getSecondary().getVirtualHost());
+		secondaryConnectionFactory.setPublisherConfirmType(customRabbitProperties.getSecondary().getPublisherConfirmType());
+		secondaryConnectionFactory.setPublisherReturns(customRabbitProperties.getSecondary().isPublisherReturns());
+		return secondaryConnectionFactory;
+	}
+
+
+	/**
+	 * primary生产者
+	 */
+	@Bean(name = "primaryRabbitTemplate")
+	@Primary
+	public RabbitTemplate primaryRabbitTemplate(@Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
+		RabbitTemplate rabbitTemplate = new RabbitTemplate();
+		rabbitTemplate.setConnectionFactory(connectionFactory);
+		/**
+		 * 从消费者(Producer) 到 交换机(exchange) 则会被调用
+		 */
+		rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
+			log.info("[primaryTemplate]ConfirmCallback 相关数据: "+correlationData);
+			log.info("[primaryTemplate]ConfirmCallback 确认情况: "+ack);
+			log.info("[primaryTemplate]ConfirmCallback 原因: "+cause);
+		});
+
+		//设置开启Mandatory,才能触发回调函数,无论消息推送结果怎么样都强制调用回调函数
+		rabbitTemplate.setMandatory(true);
+		/**
+		 * 从交换机(exchange)到 队列(queue) 则会被调用
+		 */
+		rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -> {
+			log.info("[primaryTemplate]ReturnCallback 消息内容: "+message);
+			log.info("[primaryTemplate]ReturnCallback 回应码: "+replyCode);
+			log.info("[primaryTemplate]ReturnCallback 回应消息: "+replyText);
+			log.info("[primaryTemplate]ReturnCallback 交换机: "+exchange);
+			log.info("[primaryTemplate]ReturnCallback 路由key值: "+routingKey);
+		});
+		return rabbitTemplate;
+	}
+
+	/**
+	 *   secondary生产者
+	 */
+	@Bean(name = "secondaryRabbitTemplate")
+	public RabbitTemplate secondaryRabbitTemplate(@Qualifier("secondaryConnectionFactory") ConnectionFactory connectionFactory) {
+		RabbitTemplate rabbitTemplate = new RabbitTemplate();
+		rabbitTemplate.setConnectionFactory(connectionFactory);
+		/**
+		 * 从消费者(Producer) 到 交换机(exchange) 则会被调用
+		 */
+		rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
+			log.info("[secondaryTemplate]ConfirmCallback 相关数据: "+correlationData);
+			log.info("[secondaryTemplate]ConfirmCallback 确认情况: "+ack);
+			log.info("[secondaryTemplate]ConfirmCallback 原因: "+cause);
+		});
+
+		//设置开启Mandatory,才能触发回调函数,无论消息推送结果怎么样都强制调用回调函数
+		rabbitTemplate.setMandatory(true);
+		/**
+		 * 从交换机(exchange)到 队列(queue) 则会被调用
+		 */
+		rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -> {
+			log.info("[secondaryTemplate]ReturnCallback 消息内容: "+message);
+			log.info("[secondaryTemplate]ReturnCallback 回应码: "+replyCode);
+			log.info("[secondaryTemplate]ReturnCallback 回应消息: "+replyText);
+			log.info("[secondaryTemplate]ReturnCallback 交换机: "+exchange);
+			log.info("[secondaryTemplate]ReturnCallback 路由key值: "+routingKey);
+		});
+		return rabbitTemplate;
+	}
+
+
+	/**
+	 * primary 消费者
+	 */
+	@Bean(name = "primaryListenerFactory")
+	public SimpleRabbitListenerContainerFactory primaryListenerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer
+		, @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
+		SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+		configurer.configure(factory, connectionFactory);
+		factory.setConnectionFactory(connectionFactory);
+        //消息序列化
+		factory.setMessageConverter(new Jackson2JsonMessageConverter());
+		return factory;
+	}
+
+	/**
+	 * secondary 消费者
+	 */
+	@Bean(name = "secondaryListenerFactory")
+	public SimpleRabbitListenerContainerFactory secondaryListenerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer
+		, @Qualifier("secondaryConnectionFactory") ConnectionFactory connectionFactory) {
+		SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+		configurer.configure(factory, connectionFactory);
+		factory.setConnectionFactory(connectionFactory);
+         //消息序列化
+		factory.setMessageConverter(new Jackson2JsonMessageConverter());
+		return factory;
+	}
+
+
+
+}
+
+```
+
+
+
+## 发送消息
+
+> 根据配置内容，@Qualifier 指定发送对象
+
+```java
+@Autowired
+@Qualifier("primaryRabbitTemplate")
+private  RabbitTemplate primaryRabbitTemplate;
+```
+
+
+
+## 接受消息
+
+>根据配置内容，指定监听器工厂 containerFactory = "primaryListenerFactory"  
+>
+>@RabbitHandler：如果@RabbitListener注解在类上，可通过@RabbitHandler在不同方法上，接受不同对象类型消息
+
+```java
+/**
+  * 接受消息
+  * @param msg 为自定义的消息对象
+  */
+@RabbitListener(containerFactory = "primaryListenerFactory",
+	bindings= @QueueBinding(value = @Queue(value = prefix + "delay.queue", durable = "true"),
+	exchange = @Exchange(value = prefix + "delay.exchange",type= ExchangeTypes.DIRECT,
+	arguments=@Argument(name="x-delayed-type",value="direct"),delayed=Exchange.TRUE),
+	key = prefix + "delay.key"))
+@RabbitHandler
+public void receiveMessage (Message  msg) {
+    log.info("接受的消息为: {}", msg);
+}
+```
+

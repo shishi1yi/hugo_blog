@@ -62,7 +62,7 @@
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://shaoyi.cc/posts/blog/mq/rabbitmq/rabbitmq/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2020-07-04T19:18:23&#43;08:00" />
-<meta property="article:modified_time" content="2022-07-04T19:18:23&#43;08:00" />
+<meta property="article:modified_time" content="2022-08-06T16:24:23&#43;08:00" />
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="消息中间件之RabbitMQ"/>
@@ -106,10 +106,10 @@
     "RabbitMQ"
   ],
   "articleBody": "Docker 安装RabbitMQ 这里注意获取镜像的时候要获取management版本的，不要获取last版本的，management版本的才带有管理界面。\n查询镜像\n#搜索RabbitMQ镜像 [root@shishiyi /]# docker search rabbitmq:management 得到下列结果\n下载镜像\n#下载RabbitMQ镜像 [root@shishiyi /]# docker pull rabbitmq:management 出现如下结果\n运行镜像\n#运行RabbitMQ镜像 [root@shishiyi /]# docker run -d -p 5672:5672 -p 15672:15672 --name rabbitmq rabbitmq:management 访问管理界面\n地址为 服务器ip:15672 用户名和密码都是guest\nJava方式实现RabbitMQ 1、helloword 生产者\nimport com.rabbitmq.client.Channel; import com.rabbitmq.client.Connection; import com.rabbitmq.client.ConnectionFactory; import java.io.IOException; import java.util.concurrent.TimeoutException; public class Provider { public static void main(String[] args) throws IOException, TimeoutException { //创建mq的连接工厂 ConnectionFactory connectionFactory = new ConnectionFactory(); //设置连接的服务器IP connectionFactory.setHost(\"服务器ip\"); //设置端口号 connectionFactory.setPort(5672); //设置连接的虚拟主机（类似数据库中的库） connectionFactory.setVirtualHost(\"/ems\"); //设置用户名 connectionFactory.setUsername(\"ems\"); //设置密码 connectionFactory.setPassword(\"123\"); //获取连接 Connection connection = connectionFactory.newConnection(); //获取连接的通道 Channel channel = connection.createChannel(); //通道绑定消息队列 //参数1：队列名称，如果不存在则自动创建 //参数2：是否持久队列 //参数3：是否独占队列 //参数4： 是否消费完毕删除队列 //参数5：额外附加参数 channel.queueDeclare(\"hello\",false,false,false,null); //发布消息 //参数1：交换机；参数2：队列名称；参数3：传递消息的额外设置；参数4：消息内容 channel.basicPublish(\"\",\"hello\",null,\"hello rabbitmq\".getBytes()); //关闭资源 channel.close(); connection.close(); } } 消费者\nimport com.rabbitmq.client.*; import java.io.IOException; import java.util.concurrent.TimeoutException; public class Consumer { public static void main(String[] args) throws IOException, TimeoutException { ConnectionFactory connectionFactory = new ConnectionFactory(); connectionFactory.setHost(\"服务器ip\"); connectionFactory.setPort(5672); connectionFactory.setVirtualHost(\"/ems\"); connectionFactory.setUsername(\"ems\"); connectionFactory.setPassword(\"123\"); Connection connection = connectionFactory.newConnection(); Channel channel = connection.createChannel(); channel.queueDeclare(\"hello\",false,false,false,null); //参数1：队列名称，参数2：开始消息的自动确认机制，参数3：消费时的回调接口 channel.basicConsume(\"hello\",true,new DefaultConsumer(channel){ @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException { System.out.println(\"消费的内容：\"+new String(body)); } }); } } 提取公共部分，创建工具类 RabbitMQUtils\nimport com.rabbitmq.client.Channel; import com.rabbitmq.client.Connection; import com.rabbitmq.client.ConnectionFactory; import java.io.IOException; import java.util.concurrent.TimeoutException; public class RabbitMQUtils { private static ConnectionFactory connectionFactory = null; static { connectionFactory = new ConnectionFactory(); connectionFactory.setHost(\"服务器ip\"); connectionFactory.setPort(5672); connectionFactory.setVirtualHost(\"/ems\"); connectionFactory.setUsername(\"ems\"); connectionFactory.setPassword(\"123\"); } //获取连接 public static Connection getConnection(){ try { Connection connection = connectionFactory.newConnection(); return connection; } catch (IOException e) { e.printStackTrace(); } catch (TimeoutException e) { e.printStackTrace(); } return null; } //关闭资源 public static void clone(Channel channel , Connection connection){ try { if (null !=channel) channel.close(); if (null != connection) connection.close(); } catch (IOException e) { e.printStackTrace(); } catch (TimeoutException e) { e.printStackTrace(); } } } 2、Work queues 生产者\npackage com.shishiyi.work; import com.rabbitmq.client.Channel; import com.rabbitmq.client.Connection; import com.shishiyi.utils.RabbitMQUtils; import java.io.IOException; public class Provider { public static void main(String[] args) throws IOException { Connection connection = RabbitMQUtils.getConnection(); Channel channel = connection.createChannel(); channel.queueDeclare(\"work\",false,false,false,null); for (int i = 0; i \u003c 10 ; i++) { channel.basicPublish(\"\",\"work\",null,\"work queue\".getBytes()); } RabbitMQUtils.clone(channel,connection); } } 消费者1\nConnection connection = RabbitMQUtils.getConnection(); Channel channel = connection.createChannel(); channel.queueDeclare(\"work\",false,false,false,null); channel.basicConsume(\"work\",true,new DefaultConsumer(channel){ @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException { System.out.println(\"work 消费者1：\"+new String(body)); } }); 消费者2\nConnection connection = RabbitMQUtils.getConnection(); Channel channel = connection.createChannel(); channel.basicConsume(\"work\",true,new DefaultConsumer(channel){ @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException { System.out.println(\"work 消费者2：\"+new String(body)); } }); 3、fanout 生产者\n//将通道声明为交换机 //参数1：交换机名称；参数2：交换机类型 fanout为广播类型 channel.exchangeDeclare(\"logs\",\"fanout\"); //发送消息 channel.basicPublish(\"logs\",\"\",null,\"fanout type message\".getBytes()); RabbitMQUtils.clone(channel,connection); 消费者一\n//通道声明为交换机 channel.exchangeDeclare(\"logs\",\"fanout\"); //临时的队列 String queue = channel.queueDeclare().getQueue(); //通道绑定临时队列和交换机 channel.queueBind(queue,\"logs\",\"\"); channel.basicConsume(queue,true,new DefaultConsumer(channel){ @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException { System.out.println(\"fanout1====\u003e\"+new String(body)); } }); 消费者二\n//通道声明为交换机 channel.exchangeDeclare(\"logs\",\"fanout\"); //临时队列 String queue = channel.queueDeclare().getQueue(); //通道绑定临时队列和交换机 channel.queueBind(queue,\"logs\",\"\"); channel.basicConsume(queue,true,new DefaultConsumer(channel){ @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException { System.out.println(\"fanout2====\u003e\"+new String(body)); } }); 4、direct 生产者\nchannel.exchangeDeclare(\"direct_logs\",\"direct\"); String routingKey = \"info\"; channel.basicPublish(\"direct_logs\",routingKey,null,(\"direct发送了一条routingKey为\"+routingKey+\"的消息\").getBytes()); 消费者一\nchannel.exchangeDeclare(\"direct_logs\",\"direct\"); String queue = channel.queueDeclare().getQueue(); channel.queueBind(queue,\"direct_logs\",\"error\"); channel.basicConsume(queue,true,new DefaultConsumer(channel){ @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException { System.out.println(\"direct消费者1: \"+new String(body)); } }); 消费者二\nchannel.exchangeDeclare(\"direct_logs\",\"direct\"); String queue = channel.queueDeclare().getQueue(); channel.queueBind(queue,\"direct_logs\",\"info\"); channel.queueBind(queue,\"direct_logs\",\"error\"); channel.basicConsume(queue,true,new DefaultConsumer(channel){ @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException { System.out.println(\"direct消费者2：\"+new String(body)); } }); 5、topic *符号可以代替一个单词。 ＃符号可以替代零个或多个单词。 生产者\nchannel.exchangeDeclare(\"topic_logs\",\"topic\"); String routingKey = \"user.find.save\"; channel.basicPublish(\"topic_logs\",routingKey,null,(\"发送了一条routingKey为\"+routingKey+\"的消息\").getBytes()); 消费者一\nchannel.exchangeDeclare(\"topic_logs\",\"topic\"); String queue = channel.queueDeclare().getQueue(); String routingKey = \"user.*\"; channel.queueBind(queue,\"topic_logs\",routingKey); channel.basicConsume(queue,true,new DefaultConsumer(channel){ @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException { System.out.println(\"topic消费者1：\"+new String(body)); } }); 消费者二\nchannel.exchangeDeclare(\"topic_logs\",\"topic\"); String queue = channel.queueDeclare().getQueue(); String routingKey = \"user.#\"; channel.queueBind(queue,\"topic_logs\",routingKey); channel.basicConsume(queue,true,new DefaultConsumer(channel){ @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException { System.out.println(\"topic消费者2：\"+new String(body)); } }); Springboot实现方式 消费者方绑定队列和交换机的方式 环境 ",
-  "wordCount" : "10550",
+  "wordCount" : "11788",
   "inLanguage": "zh",
   "datePublished": "2020-07-04T19:18:23+08:00",
-  "dateModified": "2022-07-04T19:18:23+08:00",
+  "dateModified": "2022-08-06T16:24:23+08:00",
   "author":[{
     "@type": "Person",
     "name": "十十乙"
@@ -224,7 +224,7 @@
 
 
 
-创建:&nbsp;<span title='2020-07-04 19:18:23 +0800 CST'>2020-07-04</span>&nbsp;·&nbsp;更新:&nbsp;2022-07-04&nbsp;·&nbsp;字数:&nbsp;10550字&nbsp;·&nbsp;
+创建:&nbsp;<span title='2020-07-04 19:18:23 +0800 CST'>2020-07-04</span>&nbsp;·&nbsp;更新:&nbsp;2022-08-06&nbsp;·&nbsp;字数:&nbsp;11788字&nbsp;·&nbsp;
 作者:&nbsp;十十乙
 
 </div>
@@ -329,10 +329,23 @@
                             <a href="#%e5%bb%b6%e8%bf%9f%e9%98%9f%e5%88%97%e6%8f%92%e4%bb%b6%e6%96%b9%e5%bc%8f" aria-label="延迟队列（插件方式）">延迟队列（插件方式）</a><ul>
                                     
                         <li>
-                            <a href="#%e6%b6%88%e8%b4%b9%e8%80%85%e6%96%b9%e7%bb%91%e5%ae%9a%e6%96%b9%e5%bc%8f%e5%ae%9e%e7%8e%b0%e5%bb%b6%e8%bf%9f%e9%98%9f%e5%88%97" aria-label="消费者方绑定方式实现延迟队列">消费者方绑定方式实现延迟队列</a>
+                            <a href="#%e6%b6%88%e8%b4%b9%e8%80%85%e6%96%b9%e7%bb%91%e5%ae%9a%e6%96%b9%e5%bc%8f%e5%ae%9e%e7%8e%b0%e5%bb%b6%e8%bf%9f%e9%98%9f%e5%88%97" aria-label="消费者方绑定方式实现延迟队列">消费者方绑定方式实现延迟队列</a></li></ul>
+                        </li></ul>
                         </li>
-                    </ul>
-                    </li>
+                        <li>
+                            <a href="#%e8%bf%9e%e6%8e%a5%e5%a4%9a%e4%b8%aarabbitmq%e7%9a%84%e6%9c%8d%e5%8a%a1%e6%88%96virtual-host" aria-label="连接多个RabbitMq的服务或Virtual-Host">连接多个RabbitMq的服务或Virtual-Host</a><ul>
+                                    
+                        <li>
+                            <a href="#%e8%87%aa%e5%ae%9a%e4%b9%89%e9%85%8d%e7%bd%ae%e6%96%87%e4%bb%b6%e5%86%85%e5%ae%b9" aria-label="自定义配置文件内容">自定义配置文件内容</a></li>
+                        <li>
+                            <a href="#%e5%88%9b%e5%bb%ba%e5%af%b9%e5%ba%94%e7%9a%84properties%e5%b1%9e%e6%80%a7%e7%b1%bb" aria-label="创建对应的Properties属性类">创建对应的Properties属性类</a></li>
+                        <li>
+                            <a href="#rabbitmq%e9%85%8d%e7%bd%ae%e7%b1%bb" aria-label="Rabbitmq配置类">Rabbitmq配置类</a></li>
+                        <li>
+                            <a href="#%e5%8f%91%e9%80%81%e6%b6%88%e6%81%af" aria-label="发送消息">发送消息</a></li>
+                        <li>
+                            <a href="#%e6%8e%a5%e5%8f%97%e6%b6%88%e6%81%af" aria-label="接受消息">接受消息</a>
+                        </li>
                     </ul>
                     </li>
                     </ul>
@@ -1977,7 +1990,248 @@
 <p>调用接口，定义10秒的延迟</p>
 <p><img loading="lazy" src="https://z3.ax1x.com/2021/11/21/IXzEPx.png" alt=""  />
 </p>
-
+<h1 id="连接多个rabbitmq的服务或virtual-host">连接多个RabbitMq的服务或Virtual-Host<a hidden class="anchor" aria-hidden="true" href="#连接多个rabbitmq的服务或virtual-host">#</a></h1>
+<p><code>注：以下为springboot方式</code></p>
+<h2 id="自定义配置文件内容">自定义配置文件内容<a hidden class="anchor" aria-hidden="true" href="#自定义配置文件内容">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="font-weight:bold">custom</span>:
+</span></span><span style="display:flex;"><span>  <span style="font-weight:bold">rabbitmq</span>:
+</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">primary</span>:
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">host</span>: <span style="color:#ff0;font-weight:bold">192.168.1.101</span>
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">port</span>: <span style="color:#ff0;font-weight:bold">3381</span>
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">username</span>: admin <span style="color:#007f7f">#用户名</span>
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">password</span>: rabbit_3381 <span style="color:#007f7f">#密码</span>
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">virtual-host</span>: rabbitMq_1    <span style="color:#007f7f">#虚拟机名称</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#007f7f">#消息确认配置项</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#007f7f">#确认消息已发送到交换机(Exchange)</span>
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">publisher-confirm-type</span>: correlated
+</span></span><span style="display:flex;"><span>      <span style="color:#007f7f">#确认消息已发送到队列(Queue)</span>
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">publisher-returns</span>: <span style="color:#fff;font-weight:bold">true</span>
+</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">secondary</span>:
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">host</span>: <span style="color:#ff0;font-weight:bold">192.168.1.102</span>
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">port</span>: <span style="color:#ff0;font-weight:bold">3381</span>
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">username</span>: admin <span style="color:#007f7f">#用户名</span>
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">password</span>: rabbit_3381 <span style="color:#007f7f">#密码</span>
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">virtual-host</span>: rabbitMq_2    <span style="color:#007f7f">#虚拟机名称</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#007f7f">#消息确认配置项</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#007f7f">#确认消息已发送到交换机(Exchange)</span>
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">publisher-confirm-type</span>: correlated
+</span></span><span style="display:flex;"><span>      <span style="color:#007f7f">#确认消息已发送到队列(Queue)</span>
+</span></span><span style="display:flex;"><span>      <span style="font-weight:bold">publisher-returns</span>: <span style="color:#fff;font-weight:bold">true</span>
+</span></span></code></pre></div><h2 id="创建对应的properties属性类">创建对应的Properties属性类<a hidden class="anchor" aria-hidden="true" href="#创建对应的properties属性类">#</a></h2>
+<blockquote>
+<p>记得加上@EnableConfigurationProperties({CustomRabbitProperties.class})</p>
+</blockquote>
+<p><strong>主要内容如下：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> lombok.Data;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> lombok.ToString;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.boot.autoconfigure.amqp.RabbitProperties;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.boot.context.properties.ConfigurationProperties;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.stereotype.Component;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f"> * @Author ShaoYi
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f"> * @Description 自定义Rabbitmq属性
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f"> * @createDate 2022年08月05日 16:35
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f"> **/</span>
+</span></span><span style="display:flex;"><span>@Data
+</span></span><span style="display:flex;"><span>@ToString
+</span></span><span style="display:flex;"><span>@Component
+</span></span><span style="display:flex;"><span>@ConfigurationProperties(prefix = <span style="color:#0ff;font-weight:bold">&#34;custom.rabbitmq&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">public</span> <span style="color:#fff;font-weight:bold">class</span> CustomRabbitProperties {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#fff;font-weight:bold">private</span> RabbitProperties primary;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#fff;font-weight:bold">private</span> RabbitProperties secondary;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="rabbitmq配置类">Rabbitmq配置类<a hidden class="anchor" aria-hidden="true" href="#rabbitmq配置类">#</a></h2>
+<p><strong>主要内容如下：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> lombok.extern.slf4j.Slf4j;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.amqp.rabbit.annotation.EnableRabbit;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.amqp.rabbit.connection.ConnectionFactory;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.amqp.rabbit.core.RabbitTemplate;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.beans.factory.annotation.Qualifier;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.context.annotation.Bean;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.context.annotation.Configuration;
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">import</span> org.springframework.context.annotation.Primary;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f"> * @Author ShaoYi
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f"> * @Description rabbitmq配置
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f"> * @createDate 2022年08月05日 17:48
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f"> **/</span>
+</span></span><span style="display:flex;"><span>@Slf4j
+</span></span><span style="display:flex;"><span>@EnableRabbit
+</span></span><span style="display:flex;"><span>@Configuration
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">public</span> <span style="color:#fff;font-weight:bold">class</span> RabbitmqConfiguration {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 * rabbitmq连接工厂
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 * @param customRabbitProperties
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 * @return
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 */</span>
+</span></span><span style="display:flex;"><span>	@Bean(name = <span style="color:#0ff;font-weight:bold">&#34;primaryConnectionFactory&#34;</span>)
+</span></span><span style="display:flex;"><span>	@Primary
+</span></span><span style="display:flex;"><span>	<span style="color:#fff;font-weight:bold">public</span> ConnectionFactory createPrimaryConnectionFactory(CustomRabbitProperties customRabbitProperties) {
+</span></span><span style="display:flex;"><span>		CachingConnectionFactory primaryConnectionFactory = <span style="color:#fff;font-weight:bold">new</span> CachingConnectionFactory();
+</span></span><span style="display:flex;"><span>		primaryConnectionFactory.<span style="color:#007f7f">setHost</span>(customRabbitProperties.<span style="color:#007f7f">getPrimary</span>().<span style="color:#007f7f">getHost</span>());
+</span></span><span style="display:flex;"><span>		primaryConnectionFactory.<span style="color:#007f7f">setPort</span>(customRabbitProperties.<span style="color:#007f7f">getPrimary</span>().<span style="color:#007f7f">getPort</span>());
+</span></span><span style="display:flex;"><span>		primaryConnectionFactory.<span style="color:#007f7f">setUsername</span>(customRabbitProperties.<span style="color:#007f7f">getPrimary</span>().<span style="color:#007f7f">getUsername</span>());
+</span></span><span style="display:flex;"><span>		primaryConnectionFactory.<span style="color:#007f7f">setPassword</span>(customRabbitProperties.<span style="color:#007f7f">getPrimary</span>().<span style="color:#007f7f">getPassword</span>());
+</span></span><span style="display:flex;"><span>		primaryConnectionFactory.<span style="color:#007f7f">setVirtualHost</span>(customRabbitProperties.<span style="color:#007f7f">getPrimary</span>().<span style="color:#007f7f">getVirtualHost</span>());
+</span></span><span style="display:flex;"><span>		primaryConnectionFactory.<span style="color:#007f7f">setPublisherConfirmType</span>(customRabbitProperties.<span style="color:#007f7f">getPrimary</span>().<span style="color:#007f7f">getPublisherConfirmType</span>());
+</span></span><span style="display:flex;"><span>		primaryConnectionFactory.<span style="color:#007f7f">setPublisherReturns</span>(customRabbitProperties.<span style="color:#007f7f">getPrimary</span>().<span style="color:#007f7f">isPublisherReturns</span>());
+</span></span><span style="display:flex;"><span>		<span style="color:#fff;font-weight:bold">return</span> primaryConnectionFactory;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 * rabbitmq连接工厂
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 * @param customRabbitProperties
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 * @return
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 */</span>
+</span></span><span style="display:flex;"><span>	@Bean(name = <span style="color:#0ff;font-weight:bold">&#34;secondaryConnectionFactory&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#fff;font-weight:bold">public</span> ConnectionFactory createSecondaryConnectionFactory(CustomRabbitProperties customRabbitProperties) {
+</span></span><span style="display:flex;"><span>		CachingConnectionFactory secondaryConnectionFactory = <span style="color:#fff;font-weight:bold">new</span> CachingConnectionFactory();
+</span></span><span style="display:flex;"><span>		secondaryConnectionFactory.<span style="color:#007f7f">setHost</span>(customRabbitProperties.<span style="color:#007f7f">getSecondary</span>().<span style="color:#007f7f">getHost</span>());
+</span></span><span style="display:flex;"><span>		secondaryConnectionFactory.<span style="color:#007f7f">setPort</span>(customRabbitProperties.<span style="color:#007f7f">getSecondary</span>().<span style="color:#007f7f">getPort</span>());
+</span></span><span style="display:flex;"><span>		secondaryConnectionFactory.<span style="color:#007f7f">setUsername</span>(customRabbitProperties.<span style="color:#007f7f">getSecondary</span>().<span style="color:#007f7f">getUsername</span>());
+</span></span><span style="display:flex;"><span>		secondaryConnectionFactory.<span style="color:#007f7f">setPassword</span>(customRabbitProperties.<span style="color:#007f7f">getSecondary</span>().<span style="color:#007f7f">getPassword</span>());
+</span></span><span style="display:flex;"><span>		secondaryConnectionFactory.<span style="color:#007f7f">setVirtualHost</span>(customRabbitProperties.<span style="color:#007f7f">getSecondary</span>().<span style="color:#007f7f">getVirtualHost</span>());
+</span></span><span style="display:flex;"><span>		secondaryConnectionFactory.<span style="color:#007f7f">setPublisherConfirmType</span>(customRabbitProperties.<span style="color:#007f7f">getSecondary</span>().<span style="color:#007f7f">getPublisherConfirmType</span>());
+</span></span><span style="display:flex;"><span>		secondaryConnectionFactory.<span style="color:#007f7f">setPublisherReturns</span>(customRabbitProperties.<span style="color:#007f7f">getSecondary</span>().<span style="color:#007f7f">isPublisherReturns</span>());
+</span></span><span style="display:flex;"><span>		<span style="color:#fff;font-weight:bold">return</span> secondaryConnectionFactory;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 * primary生产者
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 */</span>
+</span></span><span style="display:flex;"><span>	@Bean(name = <span style="color:#0ff;font-weight:bold">&#34;primaryRabbitTemplate&#34;</span>)
+</span></span><span style="display:flex;"><span>	@Primary
+</span></span><span style="display:flex;"><span>	<span style="color:#fff;font-weight:bold">public</span> RabbitTemplate primaryRabbitTemplate(@Qualifier(<span style="color:#0ff;font-weight:bold">&#34;primaryConnectionFactory&#34;</span>) ConnectionFactory connectionFactory) {
+</span></span><span style="display:flex;"><span>		RabbitTemplate rabbitTemplate = <span style="color:#fff;font-weight:bold">new</span> RabbitTemplate();
+</span></span><span style="display:flex;"><span>		rabbitTemplate.<span style="color:#007f7f">setConnectionFactory</span>(connectionFactory);
+</span></span><span style="display:flex;"><span>		<span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">		 * 从消费者(Producer) 到 交换机(exchange) 则会被调用
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">		 */</span>
+</span></span><span style="display:flex;"><span>		rabbitTemplate.<span style="color:#007f7f">setConfirmCallback</span>((correlationData, ack, cause) -&gt; {
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[primaryTemplate]ConfirmCallback 相关数据: &#34;</span>+correlationData);
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[primaryTemplate]ConfirmCallback 确认情况: &#34;</span>+ack);
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[primaryTemplate]ConfirmCallback 原因: &#34;</span>+cause);
+</span></span><span style="display:flex;"><span>		});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#007f7f">//设置开启Mandatory,才能触发回调函数,无论消息推送结果怎么样都强制调用回调函数
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f"></span>		rabbitTemplate.<span style="color:#007f7f">setMandatory</span>(<span style="color:#fff;font-weight:bold">true</span>);
+</span></span><span style="display:flex;"><span>		<span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">		 * 从交换机(exchange)到 队列(queue) 则会被调用
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">		 */</span>
+</span></span><span style="display:flex;"><span>		rabbitTemplate.<span style="color:#007f7f">setReturnCallback</span>((message, replyCode, replyText, exchange, routingKey) -&gt; {
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[primaryTemplate]ReturnCallback 消息内容: &#34;</span>+message);
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[primaryTemplate]ReturnCallback 回应码: &#34;</span>+replyCode);
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[primaryTemplate]ReturnCallback 回应消息: &#34;</span>+replyText);
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[primaryTemplate]ReturnCallback 交换机: &#34;</span>+exchange);
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[primaryTemplate]ReturnCallback 路由key值: &#34;</span>+routingKey);
+</span></span><span style="display:flex;"><span>		});
+</span></span><span style="display:flex;"><span>		<span style="color:#fff;font-weight:bold">return</span> rabbitTemplate;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 *   secondary生产者
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 */</span>
+</span></span><span style="display:flex;"><span>	@Bean(name = <span style="color:#0ff;font-weight:bold">&#34;secondaryRabbitTemplate&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#fff;font-weight:bold">public</span> RabbitTemplate secondaryRabbitTemplate(@Qualifier(<span style="color:#0ff;font-weight:bold">&#34;secondaryConnectionFactory&#34;</span>) ConnectionFactory connectionFactory) {
+</span></span><span style="display:flex;"><span>		RabbitTemplate rabbitTemplate = <span style="color:#fff;font-weight:bold">new</span> RabbitTemplate();
+</span></span><span style="display:flex;"><span>		rabbitTemplate.<span style="color:#007f7f">setConnectionFactory</span>(connectionFactory);
+</span></span><span style="display:flex;"><span>		<span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">		 * 从消费者(Producer) 到 交换机(exchange) 则会被调用
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">		 */</span>
+</span></span><span style="display:flex;"><span>		rabbitTemplate.<span style="color:#007f7f">setConfirmCallback</span>((correlationData, ack, cause) -&gt; {
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[secondaryTemplate]ConfirmCallback 相关数据: &#34;</span>+correlationData);
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[secondaryTemplate]ConfirmCallback 确认情况: &#34;</span>+ack);
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[secondaryTemplate]ConfirmCallback 原因: &#34;</span>+cause);
+</span></span><span style="display:flex;"><span>		});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#007f7f">//设置开启Mandatory,才能触发回调函数,无论消息推送结果怎么样都强制调用回调函数
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f"></span>		rabbitTemplate.<span style="color:#007f7f">setMandatory</span>(<span style="color:#fff;font-weight:bold">true</span>);
+</span></span><span style="display:flex;"><span>		<span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">		 * 从交换机(exchange)到 队列(queue) 则会被调用
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">		 */</span>
+</span></span><span style="display:flex;"><span>		rabbitTemplate.<span style="color:#007f7f">setReturnCallback</span>((message, replyCode, replyText, exchange, routingKey) -&gt; {
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[secondaryTemplate]ReturnCallback 消息内容: &#34;</span>+message);
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[secondaryTemplate]ReturnCallback 回应码: &#34;</span>+replyCode);
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[secondaryTemplate]ReturnCallback 回应消息: &#34;</span>+replyText);
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[secondaryTemplate]ReturnCallback 交换机: &#34;</span>+exchange);
+</span></span><span style="display:flex;"><span>			log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;[secondaryTemplate]ReturnCallback 路由key值: &#34;</span>+routingKey);
+</span></span><span style="display:flex;"><span>		});
+</span></span><span style="display:flex;"><span>		<span style="color:#fff;font-weight:bold">return</span> rabbitTemplate;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 * primary 消费者
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 */</span>
+</span></span><span style="display:flex;"><span>	@Bean(name = <span style="color:#0ff;font-weight:bold">&#34;primaryListenerFactory&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#fff;font-weight:bold">public</span> SimpleRabbitListenerContainerFactory primaryListenerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer
+</span></span><span style="display:flex;"><span>		, @Qualifier(<span style="color:#0ff;font-weight:bold">&#34;primaryConnectionFactory&#34;</span>) ConnectionFactory connectionFactory) {
+</span></span><span style="display:flex;"><span>		SimpleRabbitListenerContainerFactory factory = <span style="color:#fff;font-weight:bold">new</span> SimpleRabbitListenerContainerFactory();
+</span></span><span style="display:flex;"><span>		configurer.<span style="color:#007f7f">configure</span>(factory, connectionFactory);
+</span></span><span style="display:flex;"><span>		factory.<span style="color:#007f7f">setConnectionFactory</span>(connectionFactory);
+</span></span><span style="display:flex;"><span>        <span style="color:#007f7f">//消息序列化
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f"></span>		factory.<span style="color:#007f7f">setMessageConverter</span>(<span style="color:#fff;font-weight:bold">new</span> Jackson2JsonMessageConverter());
+</span></span><span style="display:flex;"><span>		<span style="color:#fff;font-weight:bold">return</span> factory;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 * secondary 消费者
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">	 */</span>
+</span></span><span style="display:flex;"><span>	@Bean(name = <span style="color:#0ff;font-weight:bold">&#34;secondaryListenerFactory&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#fff;font-weight:bold">public</span> SimpleRabbitListenerContainerFactory secondaryListenerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer
+</span></span><span style="display:flex;"><span>		, @Qualifier(<span style="color:#0ff;font-weight:bold">&#34;secondaryConnectionFactory&#34;</span>) ConnectionFactory connectionFactory) {
+</span></span><span style="display:flex;"><span>		SimpleRabbitListenerContainerFactory factory = <span style="color:#fff;font-weight:bold">new</span> SimpleRabbitListenerContainerFactory();
+</span></span><span style="display:flex;"><span>		configurer.<span style="color:#007f7f">configure</span>(factory, connectionFactory);
+</span></span><span style="display:flex;"><span>		factory.<span style="color:#007f7f">setConnectionFactory</span>(connectionFactory);
+</span></span><span style="display:flex;"><span>         <span style="color:#007f7f">//消息序列化
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f"></span>		factory.<span style="color:#007f7f">setMessageConverter</span>(<span style="color:#fff;font-weight:bold">new</span> Jackson2JsonMessageConverter());
+</span></span><span style="display:flex;"><span>		<span style="color:#fff;font-weight:bold">return</span> factory;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="发送消息">发送消息<a hidden class="anchor" aria-hidden="true" href="#发送消息">#</a></h2>
+<blockquote>
+<p>根据配置内容，@Qualifier 指定发送对象</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>@Autowired
+</span></span><span style="display:flex;"><span>@Qualifier(<span style="color:#0ff;font-weight:bold">&#34;primaryRabbitTemplate&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">private</span>  RabbitTemplate primaryRabbitTemplate;
+</span></span></code></pre></div><h2 id="接受消息">接受消息<a hidden class="anchor" aria-hidden="true" href="#接受消息">#</a></h2>
+<blockquote>
+<p>根据配置内容，指定监听器工厂 containerFactory = &ldquo;primaryListenerFactory&rdquo;</p>
+<p>@RabbitHandler：如果@RabbitListener注解在类上，可通过@RabbitHandler在不同方法上，接受不同对象类型消息</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#007f7f">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">  * 接受消息
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">  * @param msg 为自定义的消息对象
+</span></span></span><span style="display:flex;"><span><span style="color:#007f7f">  */</span>
+</span></span><span style="display:flex;"><span>@RabbitListener(containerFactory = <span style="color:#0ff;font-weight:bold">&#34;primaryListenerFactory&#34;</span>,
+</span></span><span style="display:flex;"><span>	bindings= @QueueBinding(value = @Queue(value = prefix + <span style="color:#0ff;font-weight:bold">&#34;delay.queue&#34;</span>, durable = <span style="color:#0ff;font-weight:bold">&#34;true&#34;</span>),
+</span></span><span style="display:flex;"><span>	exchange = @Exchange(value = prefix + <span style="color:#0ff;font-weight:bold">&#34;delay.exchange&#34;</span>,type= ExchangeTypes.<span style="color:#007f7f">DIRECT</span>,
+</span></span><span style="display:flex;"><span>	arguments=@Argument(name=<span style="color:#0ff;font-weight:bold">&#34;x-delayed-type&#34;</span>,value=<span style="color:#0ff;font-weight:bold">&#34;direct&#34;</span>),delayed=Exchange.<span style="color:#007f7f">TRUE</span>),
+</span></span><span style="display:flex;"><span>	key = prefix + <span style="color:#0ff;font-weight:bold">&#34;delay.key&#34;</span>))
+</span></span><span style="display:flex;"><span>@RabbitHandler
+</span></span><span style="display:flex;"><span><span style="color:#fff;font-weight:bold">public</span> <span style="color:#fff;font-weight:bold">void</span> receiveMessage (Message  msg) {
+</span></span><span style="display:flex;"><span>    log.<span style="color:#007f7f">info</span>(<span style="color:#0ff;font-weight:bold">&#34;接受的消息为: {}&#34;</span>, msg);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div>
 
   </div>
 
