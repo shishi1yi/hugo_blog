@@ -2271,6 +2271,8 @@ public class RabbitmqConfiguration {
 			log.info("[primaryTemplate]ReturnCallback 交换机: "+exchange);
 			log.info("[primaryTemplate]ReturnCallback 路由key值: "+routingKey);
 		});
+        // 添加json格式序列化器
+		rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
 		return rabbitTemplate;
 	}
 
@@ -2302,6 +2304,8 @@ public class RabbitmqConfiguration {
 			log.info("[secondaryTemplate]ReturnCallback 交换机: "+exchange);
 			log.info("[secondaryTemplate]ReturnCallback 路由key值: "+routingKey);
 		});
+         // 添加json格式序列化器
+		rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
 		return rabbitTemplate;
 	}
 
