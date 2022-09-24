@@ -2104,7 +2104,7 @@ public class TestContoller {
 
 
 
-# 连接多个RabbitMq的服务或Virtual-Host
+# 连接多个RabbitMq源
 
 `注：以下为springboot方式`
 
@@ -2337,6 +2337,38 @@ public class RabbitmqConfiguration {
 		factory.setMessageConverter(new Jackson2JsonMessageConverter());
 		return factory;
 	}
+    
+    
+  	/**
+	 * primary的AmqpAdmin
+	 */
+	@Primary
+	@Bean(name="primaryAmqpAdmin")
+	public AmqpAdmin primaryAmqpAdmin(@Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
+		RabbitAdmin admin = new RabbitAdmin(connectionFactory);
+        /**
+		 * 防止声明过的所有队列，交换机，绑定三种类型对象，在每个virtual-host上都创建一边，
+		 * 除此之外还需要在声明队列，交换机，绑定的地方指定对应的AmqpAdmin 否则还是会创建
+		 */
+		admin.setExplicitDeclarationsOnly(true);
+		admin.setAutoStartup(true);
+		return admin;
+	}
+
+    /**
+	 * secondary的AmqpAdmin
+	 */
+	@Bean(name="secondaryAmqpAdmin")
+	public AmqpAdmin secondaryAmqpAdmin(@Qualifier("secondaryConnectionFactory") ConnectionFactory connectionFactory) {
+		RabbitAdmin admin = new RabbitAdmin(connectionFactory);
+        /**
+		 * 防止声明过的所有队列，交换机，绑定三种类型对象，在每个virtual-host上都创建一边，
+		 * 除此之外还需要在声明队列，交换机，绑定的地方指定对应的AmqpAdmin 否则还是会创建
+		 */
+		admin.setExplicitDeclarationsOnly(true);
+		admin.setAutoStartup(true);
+		return admin;
+	}
 
 
 
@@ -2363,17 +2395,21 @@ private  RabbitTemplate primaryRabbitTemplate;
 >根据配置内容，指定监听器工厂 containerFactory = "primaryListenerFactory"  
 >
 >@RabbitHandler：如果@RabbitListener注解在类上，可通过@RabbitHandler在不同方法上，接受不同对象类型消息
+>
+>除此之外，需要在声明队列，交换机，绑定的地方指定对应的AmqpAdmin， 否则每个virtual-host上都创建一边
 
 ```java
 /**
   * 接受消息
   * @param msg 为自定义的消息对象
   */
-@RabbitListener(containerFactory = "primaryListenerFactory",
-	bindings= @QueueBinding(value = @Queue(value = prefix + "delay.queue", durable = "true"),
-	exchange = @Exchange(value = prefix + "delay.exchange",type= ExchangeTypes.DIRECT,
-	arguments=@Argument(name="x-delayed-type",value="direct"),delayed=Exchange.TRUE),
-	key = prefix + "delay.key"))
+@RabbitListener(
+    containerFactory = "primaryContainerListenerFactory",
+    admin = "primaryAmqpAdmin",
+    bindings = @QueueBinding(value = @Queue(value = "alarm_rule_queue", durable = "true", admins = "primaryAmqpAdmin"),
+            exchange = @Exchange(value = AlarmRuleParamBO.exchange, type = ExchangeTypes.DIRECT, admins = "primaryAmqpAdmin"),
+            key = AlarmRuleParamBO.routingKey,
+            admins = "primaryAmqpAdmin"))
 @RabbitHandler
 public void receiveMessage (Message  msg) {
     log.info("接受的消息为: {}", msg);
